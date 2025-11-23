@@ -1,0 +1,35 @@
+name: STM32CubeIDE Build
+
+on:
+  push:
+    branches: [ "main", "chore/infra/docker-stm32cubeide-build" ]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  stm32cubeide_build:
+    name: STM32CubeIDE Docker Build
+    runs-on: ubuntu-latest
+
+    container:
+      image: xanderhendriks/stm32cubeide:16.0
+      options: --privileged
+
+    steps:
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y git build-essential cmake gcc-arm-none-eabi binutils-arm-none-eabi
+
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Build l552 and l562 boards
+        working-directory: ./zeropilot3.5
+        run: |
+          bash ./hwbuild.bash -c -b l552 &
+          bash ./hwbuild.bash -c -b l562 &
+          wait
